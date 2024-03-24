@@ -10,6 +10,11 @@ if platform.system() == 'Windows':
 elif platform.system() == 'Darwin':
     from AppKit import NSWorkspace
 
+start_time = time.time()
+counter = 0
+elapsed_time = 0
+unfocused_time = 0
+
 def is_terminal_in_focus():
     if platform.system() == 'Windows':
         current_window = win32gui.GetForegroundWindow()
@@ -19,18 +24,14 @@ def is_terminal_in_focus():
         active_app = NSWorkspace.sharedWorkspace().activeApplication()
         return active_app['NSApplicationName'] == 'Terminal'
 
-start_time = time.time()
-counter = 0
-elapsed_time = 0
-unfocused_time = 0
-
-exercise = input("enter exercise: ")
-set_amount = input("enter set rep amount: ")
-
 def on_space(event):
     global counter
     if event.name == 'space' and is_terminal_in_focus():
         counter += int(set_amount)
+
+
+exercise = input("enter exercise: ")
+set_amount = input("enter set rep amount: ")
 
 keyboard.on_press(on_space)
 
@@ -38,13 +39,12 @@ try:
     while True:
         if(is_terminal_in_focus()):
             elapsed_time = (time.time() - start_time) - unfocused_time
-
-        if(not is_terminal_in_focus()):
+            sys.stdout.write("\033[K")  # Clear the line
+            print("Time elapsed:", round(elapsed_time, 2), "seconds | Counter:", counter, end="\r")
+        else:
             unfocused_time = (time.time() - start_time) - elapsed_time
 
-        sys.stdout.write("\033[K")  # Clear the line
-        print("Time elapsed:", round(elapsed_time, 2), "seconds | Counter:", counter, end="\r")  # Output elapsed time and counter
-        time.sleep(0.1)  # Sleep for a short duration to avoid high CPU usage
+        time.sleep(1)  # Sleep for a second to avoid high CPU usage
 except KeyboardInterrupt:
     print("")
 
